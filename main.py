@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
 import requests
+from pprint import pprint
 
 load_dotenv()
 YD_API_KEY = os.getenv("YD_API_KEY")
@@ -9,7 +10,7 @@ YD_API_KEY = os.getenv("YD_API_KEY")
 class DogAPI:
     API_BASE_URL = "https://dog.ceo/api/breed"
 
-    def get_sub_breeds(self, bread: str) -> list[str]:
+    def get_sub_breeds(self, bread):
         try:
             response = requests.get(f"{self.API_BASE_URL}/{bread}/list")
             response.raise_for_status()
@@ -19,6 +20,23 @@ class DogAPI:
             return []
         except KeyError as e:
             print("Ошибка при обработке ответа от API", e)
+            return []
+
+    def get_urls(self, breed, sub_breed=None):
+        urls = []
+        try:
+            if sub_breed != [] and sub_breed is not None:
+                for item in sub_breed:
+                    response = requests.get(
+                        f"{self.API_BASE_URL}/{breed}/{item}/images/random"
+                    )
+                    urls.append(response.json()["message"])
+            else:
+                response = requests.get(f"{self.API_BASE_URL}/{breed}/images/random")
+                urls.append(response.json()["message"])
+            return urls
+        except requests.exceptions.RequestException as e:
+            print("Ошибка при запросе к API", e)
             return []
 
 
