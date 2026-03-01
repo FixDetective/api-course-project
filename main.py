@@ -45,15 +45,29 @@ class YaDiskAPI:
 
     def __init__(self, token):
         self.token = token
+        self.headers = {"Authorization": f"OAuth {self.token}"}
 
     def create_folder(self, name_folder):
         try:
-            headers = {"Authorization": f"OAuth {self.token}"}
             params = {"path": f"disk:/{name_folder}"}
-            response = requests.put(self.API_BASE_URL, params=params, headers=headers)
+            response = requests.put(
+                self.API_BASE_URL, params=params, headers=self.headers
+            )
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             print("Ошибка при создании папки", e)
+
+    def upload_photos_from_urls(self, breed, urls):
+        try:
+            for url in urls:
+                name_file_from_url = "_".join(url.split("/")[-2:])
+                params = {"url": url, "path": f"disk:/{breed}/{name_file_from_url}"}
+                response = requests.post(
+                    f"{self.API_BASE_URL}/upload", params=params, headers=self.headers
+                )
+                response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            print("Ошибка при загрузке файла", e)
 
 
 if __name__ == "__main__":
