@@ -22,5 +22,21 @@ class DogAPI:
             return []
 
 
+class YaDiskAPI:
+    API_BASE_URL = "https://cloud-api.yandex.net/v1/disk/resources"
+
+    def __init__(self, token):
+        self.token = token
+
+    def create_folder(self, name_folder):
+        try:
+            headers = {"Authorization": f"OAuth {self.token}"}
+            params = {"path": f"disk:/{name_folder}"}
+            response = requests.put(self.API_BASE_URL, params=params, headers=headers)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            print("Ошибка при создании папки", e)
+
+
 if __name__ == "__main__":
     pass
