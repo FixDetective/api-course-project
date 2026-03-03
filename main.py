@@ -54,8 +54,10 @@ class YaDiskAPI:
                 self.API_BASE_URL, params=params, headers=self.headers
             )
             response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            print("Ошибка при создании папки", e)
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code != 409:
+                print("Ошибка при создании папки", e)
+                
 
     def upload_photos_from_urls(self, breed, urls):
         try:
