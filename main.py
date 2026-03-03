@@ -71,4 +71,11 @@ class YaDiskAPI:
 
 
 if __name__ == "__main__":
-    pass
+    breed = input("Введите породу собаки: ")
+    dog_client = DogAPI()
+    sub_breeds = dog_client.get_sub_breeds(breed)
+    urls = dog_client.get_urls(breed, sub_breeds)
+    ya_client = YaDiskAPI(YD_API_KEY)
+    ya_client.create_folder(breed)
+    ya_client.upload_photos_from_urls(breed, urls)
+
