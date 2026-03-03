@@ -2,6 +2,8 @@ from dotenv import load_dotenv
 import os
 import requests
 from tqdm import tqdm
+from datetime import datetime
+import json
 
 load_dotenv()
 YD_API_KEY = os.getenv("YD_API_KEY")
@@ -46,6 +48,7 @@ class YaDiskAPI:
     def __init__(self, token):
         self.token = token
         self.headers = {"Authorization": f"OAuth {self.token}"}
+        self.result_upload = {}
 
     def create_folder(self, name_folder):
         try:
@@ -57,9 +60,10 @@ class YaDiskAPI:
         except requests.exceptions.HTTPError as e:
             if e.response.status_code != 409:
                 print("Ошибка при создании папки", e)
-                
 
     def upload_photos_from_urls(self, breed, urls):
+        success_count = 0
+        total = len(urls)
         try:
             for url in tqdm(urls, desc="Загрузка изображений", unit="файл"):
                 name_file_from_url = "_".join(url.split("/")[-2:])
@@ -68,8 +72,39 @@ class YaDiskAPI:
                     f"{self.API_BASE_URL}/upload", params=params, headers=self.headers
                 )
                 response.raise_for_status()
+                success_count += 1
         except requests.exceptions.RequestException as e:
             print("Ошибка при загрузке файла", e)
+        failed_count = total - success_count
+        status = (
+            "success"
+            if failed_count == 0
+            else "partial"
+            if success_count > 0
+            else "failed"
+        )
+        self.result_upload = {
+            "breed": breed,
+            "total_photos": total,
+            "successful_uploads": success_count,
+            "failed_uploads": failed_count,
+            "status": status,
+            "timestamp": datetime.now().isoformat(),
+        }
+
+    def save_last_upload_summary(self, path="last_upload.json"):
+        if not self.result_upload:
+            print("Нет данных о загрузке для сохранения.")
+            return False
+
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(self.result_upload, f, ensure_ascii=False, indent=2)
+            print(f"Информация о результатах сохранена: {path}")
+            return True
+        except Exception as e:
+            print(f"Ошибка при сохранении результатов: {e}")
+        return False
 
 
 if __name__ == "__main__":
@@ -80,4 +115,4 @@ if __name__ == "__main__":
     ya_client = YaDiskAPI(YD_API_KEY)
     ya_client.create_folder(breed)
     ya_client.upload_photos_from_urls(breed, urls)
-
+    ya_client.save_last_upload_summary()
