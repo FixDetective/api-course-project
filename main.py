@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import os
 import requests
-from pprint import pprint
+from tqdm import tqdm
 
 load_dotenv()
 YD_API_KEY = os.getenv("YD_API_KEY")
@@ -61,7 +61,7 @@ class YaDiskAPI:
 
     def upload_photos_from_urls(self, breed, urls):
         try:
-            for url in urls:
+            for url in tqdm(urls, desc="Загрузка изображений", unit="файл"):
                 name_file_from_url = "_".join(url.split("/")[-2:])
                 params = {"url": url, "path": f"disk:/{breed}/{name_file_from_url}"}
                 response = requests.post(
